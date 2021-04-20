@@ -4,8 +4,6 @@ const net = require('net');
 
 const debug = require('debug')('client:connection');
 
-// const sleep = require('../utils/sleep');
-
 const { onData, onError, optionalServers } = require('./actions');
 
 const clientSocket = new net.Socket();
@@ -14,7 +12,7 @@ const maxRetry = 5;
 let numberOfTries = 0;
 let sktPort = 0;
 let sktHost = '';
-const delay = 1000;
+const delay = 2 ** numberOfTries * 1000;
 
 async function connect({ port, host }) {
   sktPort = port;
@@ -28,8 +26,6 @@ async function connect({ port, host }) {
 
   await createConnection({ port, host });
 
-  Object.assign(clientSocket, optionalServers);
-
   return clientSocket;
 }
 
@@ -40,6 +36,14 @@ function onClose() {
   }
 
   numberOfTries += 1;
+
+  const newBroker = optionalServers.pop();
+
+  if (newBroker) {
+    sktPort = newBroker.port;
+    sktHost = newBroker.host;
+    debug(`New broker found at ${sktHost} and ${sktPort}`);
+  }
 
   setTimeout(createConnection, delay, { port: sktPort, host: sktHost });
 }
@@ -59,6 +63,5 @@ function createConnection({ host, port }) {
 
 module.exports = {
   connect,
-  // reconnect,
   clientSocket,
 };

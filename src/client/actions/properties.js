@@ -1,6 +1,6 @@
 'use strict';
 
-const optionalServers = [{ port: 8081, host: 'localhost' }];
+const optionalServers = [];
 
 module.exports = {
   optionalServers,
