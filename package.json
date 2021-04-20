@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "prettier --write . && eslint --fix .",
+    "debug": "DEBUG=* node test.js",
+    "debug-server":"DEBUG=* node broker.js",
+    "debug-client":"DEBUG=* node client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
