@@ -21,5 +21,14 @@
   "bugs": {
     "url": "https://github.com/joaoderocha/TP3-resilience/issues"
   },
-  "homepage": "https://github.com/joaoderocha/TP3-resilience#readme"
+  "homepage": "https://github.com/joaoderocha/TP3-resilience#readme",
+  "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-unicorn": "^28.0.2"
+  }
 }
