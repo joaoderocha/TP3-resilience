@@ -4,6 +4,7 @@
   "description": "Simple broker and client with connection fault tolerance",
   "main": "index.js",
   "scripts": {
+    "lint": "prettier --write . && eslint --fix .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,6 +25,8 @@
   "homepage": "https://github.com/joaoderocha/TP3-resilience#readme",
   "devDependencies": {
     "eslint": "^7.20.0",
+    "debug": "4.3.1",
+    "prettier": "^2.2.1",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
