@@ -6,8 +6,10 @@
   "scripts": {
     "lint": "prettier --write . && eslint --fix .",
     "debug": "DEBUG=* node test.js",
-    "debug-server":"DEBUG=* node broker.js",
-    "debug-client":"DEBUG=* node client.js",
+    "debug-server": "DEBUG=* node broker.js",
+    "debug-client": "DEBUG=* node client.js",
+    "windows-debug-server": "@powershell -Command $env:DEBUG='*';node broker.js",
+    "windows-debug-client": "@powershell -Command $env:DEBUG='*';node client.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
