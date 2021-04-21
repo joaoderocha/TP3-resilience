@@ -12,9 +12,11 @@ const maxRetry = 5;
 let numberOfTries = 0;
 let sktPort = 0;
 let sktHost = '';
-const delay = 2 ** numberOfTries * 1000;
+let clientName = '';
+let delay = 2 ** numberOfTries * 1000;
 
-async function connect({ port, host }) {
+async function connect(name, { port, host }) {
+  clientName = name;
   sktPort = port;
   sktHost = host;
   debug(`Connecting to ${host} at ${port}...`);
@@ -25,6 +27,7 @@ async function connect({ port, host }) {
   clientSocket.on('close', onClose);
 
   await createConnection({ port, host });
+  Object.assign(clientSocket, { clientName });
 
   return clientSocket;
 }
@@ -36,8 +39,13 @@ function onClose() {
   }
 
   numberOfTries += 1;
+  delay = 2 ** numberOfTries * 1000;
 
-  const newBroker = optionalServers.pop();
+  let newBroker = null;
+
+  if (optionalServers.length === 0) {
+    newBroker = optionalServers.pop();
+  }
 
   if (newBroker) {
     sktPort = newBroker.port;
@@ -65,3 +73,7 @@ module.exports = {
   connect,
   clientSocket,
 };
+
+// envia                 recebe
+// primeira mensagem -> lista de brokers
+// acessar recurso (hash da lista) -> resposta de acesso ao recurso e (lista || nada)

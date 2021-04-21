@@ -4,13 +4,13 @@ const net = require('net');
 
 const debug = require('debug')('server:start');
 
-const { onConnection, onError } = require('./actions');
+const { onError, onConnection } = require('./actions');
 
 exports.start = function start(port) {
   debug('Starting server...');
   const server = net.createServer();
 
-  server.on('data', onConnection);
+  server.on('connection', onConnection);
   server.on('error', onError);
 
   return new Promise((resolve) => {
