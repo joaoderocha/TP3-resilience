@@ -1,18 +1,30 @@
 'use strict';
 
 const {connect} = require('./src/client');
-const { encode } = require('./src/utils');
+const { encode, sleep } = require('./src/utils');
+
+const numberOfTries = 0;
+const delay = 2000;
+const maxRetry = 5;
+const reconnecting = false
 
 (async ()=>{
-  const skt = await connect('teste',{port: 8080, host:'localhost'});
 
-  const obj = {
-    source: 'client',
-    messageType: 'aquire',
-    content: {
-      resourcePosition: 10
-    },
-  };
-
-  skt.write(encode(obj));
 })();
+
+function isReconnecting() {
+  // return new Proxy(reconnecting, {
+  //   apply: (target) =>
+  //     new Promise((resolve, reject) => {
+  //       while (target) {
+  //         if (numberOfTries > maxRetry) {
+  //           reject(new Error('Failed to reconnect too many times'));
+  //         }
+
+  //         sleep(delay);
+  //       }
+
+  //       resolve(!target);
+  //     }),
+  // });
+}

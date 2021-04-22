@@ -5,7 +5,6 @@ const net = require('net');
 const debug = require('debug')('client:connection');
 
 const { encode, decode, messageBuilder, MESSAGETYPE, SOURCE } = require('../utils');
-const sleep = require('../utils/sleep');
 
 const { onError, optionalServers } = require('./actions');
 
@@ -49,7 +48,7 @@ function informServer() {
 
 function sendMessage(message) {
   return new Promise((resolve, reject) => {
-    setTimeout(reject, 10000, new Error('Could not connect to server'));
+    setTimeout(reject, delay, new Error('Could not connect to server'));
     clientSocket.once('data', (data) => {
       resolve(decode(data));
     });
@@ -68,7 +67,7 @@ function awaitResource() {
       resolve(decode(data));
     });
 
-    setTimeout(reject, 10000, { available: false });
+    setTimeout(reject, delay, { available: false });
   });
 }
 
@@ -77,6 +76,7 @@ function onClose() {
     clientSocket.destroy();
   }
 
+  connected = false;
   reconnecting = true;
   debug('Connection lost, trying to reconect...');
   if (numberOfTries >= maxRetry) {
@@ -106,6 +106,7 @@ function onClose() {
 
 function onConnection() {
   numberOfTries = 0;
+  delay = 2 ** numberOfTries * 1000;
   reconnecting = false;
   connected = true;
 }
@@ -122,18 +123,6 @@ function createConnection({ host, port }) {
 
 function isReconnecting() {
   return reconnecting;
-  // return new Proxy(isReconnecting, {
-  //   apply: (target) =>
-  //     new Promise((resolve, reject) => {
-  //       while (reconnecting) {
-  //         if (numberOfTries > maxRetry) {
-  //           reject(new Error('Failed to reconnect too many times'));
-  //         }
-  //         sleep(delay);
-  //       }
-  //       resolve(reconnecting);
-  //     }),
-  // });
 }
 
 function isConnected() {

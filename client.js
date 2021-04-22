@@ -39,11 +39,13 @@ async function main() {
     } catch (error) {
       console.log(error);
 
-      console.log('deu erro, reconectando');
+      console.log('deu erro, reconectando', isReconnecting(), isConnected());
 
       while (isReconnecting() && !isConnected()) {
-        console.log('reconectando');
-        sleep(getCurrentDelay());
+        const dlay = getCurrentDelay();
+
+        console.log('reconectando', dlay);
+        await sleep(dlay);
       }
 
       if (!isConnected()) {
