@@ -17,7 +17,14 @@ const resources = [
 
 const resourcesLength = resources.length;
 
-// const logResources = [];
+function print() {
+  for (const resource of resources) {
+    console.log(resource.content);
+    for (const id of resource.queue) {
+      console.log(id);
+    }
+  }
+}
 
 function checkavailable(idResource) {
   return resources[idResource].available;
@@ -39,6 +46,7 @@ function checkOnQueue(idRecurso, idClient) {
 }
 
 function removeResourceQueue(idResource) {
+  console.log(idResource);
   if (resources[idResource]) {
     debug('resource queue');
 
@@ -76,4 +84,5 @@ module.exports = {
   lockResource,
   releaseResource,
   resourcesLength,
+  print,
 };
