@@ -66,8 +66,6 @@ function releaseHandler(content) {
 
   addLog(`proximo da fila ${idClient}`);
 
-  console.log('ID CLIENTE: ', idClient);
-
   resource.print();
   resource.updateResource(idRecurso, recurso);
 
@@ -80,19 +78,13 @@ function releaseHandler(content) {
     };
   }
 
-  console.log('TESTEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
   addLog(`enviando recurso pro ${idClient}`);
 
   const clientSocket = listaDeSocketsDeClientes.get(idClient);
 
-  console.log('Socket: ', util.inspect(clientSocket));
-
   const response = messageBuilder[MESSAGETYPE.AQUIRERESPONSE]({ available: true, resource: recurso });
 
-  console.log('response', util.inspect(response));
-
   clientSocket.write(encode(response));
-  console.log('TESTEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
 
   return {
     statusCode: 'ok',

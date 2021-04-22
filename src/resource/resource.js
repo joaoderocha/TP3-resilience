@@ -46,7 +46,6 @@ function checkOnQueue(idRecurso, idClient) {
 }
 
 function removeResourceQueue(idResource) {
-  console.log(idResource);
   if (resources[idResource]) {
     debug('resource queue');
 

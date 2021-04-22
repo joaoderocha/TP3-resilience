@@ -4,13 +4,12 @@ const net = require('net');
 
 const debug = require('debug')('client:connection');
 
-const { resourcesLength } = require('../resource');
 const { encode, decode, messageBuilder, MESSAGETYPE, SOURCE } = require('../utils');
 const sleep = require('../utils/sleep');
 
 const { onError, optionalServers } = require('./actions');
 
-const clientSocket = new net.Socket();
+let clientSocket = null;
 
 const maxRetry = 5;
 let numberOfTries = 0;
@@ -19,9 +18,10 @@ let sktHost = '';
 let clientName = '';
 let delay = 2 ** numberOfTries * 1000;
 let reconnecting = false;
-let connected = true;
+let connected = false;
 
 async function connect(name, { port, host }) {
+  clientSocket = new net.Socket();
   clientName = name;
   sktPort = port;
   sktHost = host;
@@ -36,6 +36,8 @@ async function connect(name, { port, host }) {
   });
   await createConnection({ port, host });
 
+  await informServer();
+
   return clientSocket;
 }
 
@@ -46,7 +48,8 @@ function informServer() {
 }
 
 function sendMessage(message) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(reject, 10000, new Error('Could not connect to server'));
     clientSocket.once('data', (data) => {
       resolve(decode(data));
     });
@@ -70,6 +73,10 @@ function awaitResource() {
 }
 
 function onClose() {
+  if (!clientSocket.destroyed) {
+    clientSocket.destroy();
+  }
+
   reconnecting = true;
   debug('Connection lost, trying to reconect...');
   if (numberOfTries >= maxRetry) {
@@ -94,15 +101,13 @@ function onClose() {
     debug(`New broker found at ${sktHost} and ${sktPort}`);
   }
 
-  setTimeout(createConnection, delay, { port: sktPort, host: sktHost });
+  setTimeout(connect, delay, { port: sktPort, host: sktHost }, clientName);
 }
 
-async function onConnection() {
+function onConnection() {
   numberOfTries = 0;
   reconnecting = false;
   connected = true;
-  await informServer();
-  run();
 }
 
 function createConnection({ host, port }) {
@@ -117,55 +122,26 @@ function createConnection({ host, port }) {
 
 function isReconnecting() {
   return reconnecting;
+  // return new Proxy(isReconnecting, {
+  //   apply: (target) =>
+  //     new Promise((resolve, reject) => {
+  //       while (reconnecting) {
+  //         if (numberOfTries > maxRetry) {
+  //           reject(new Error('Failed to reconnect too many times'));
+  //         }
+  //         sleep(delay);
+  //       }
+  //       resolve(reconnecting);
+  //     }),
+  // });
 }
 
 function isConnected() {
   return connected;
 }
 
-async function run() {
-  let shouldRun = true;
-
-  while (shouldRun) {
-    const resourcePosition = randomResource();
-
-    const aquireMessage = messageBuilder[MESSAGETYPE.AQUIRE](resourcePosition, clientName);
-
-    try {
-      let run = false;
-      let recurso = {};
-
-      do {
-        const { content } = await sendMessage(aquireMessage);
-
-        debug(`recurso ${content.resource} disponivel ${content.available}`);
-        recurso = content.resource;
-
-        if (!content.available) {
-          debug('content not available, awaiting resource');
-          const {
-            content: { available, resource },
-          } = await awaitResource();
-
-          run = !available;
-          recurso = resource;
-        }
-      } while (run);
-
-      await sleep(2000);
-
-      const mesage = messageBuilder[MESSAGETYPE.RELEASE](resourcePosition, recurso);
-
-      await sendMessage(mesage);
-    } catch (error) {
-      debug(error);
-      shouldRun = false;
-    }
-  }
-}
-
-function randomResource(MIN = 0, MAX = resourcesLength) {
-  return Math.floor(Math.random() * (MAX - MIN) + MIN);
+function getCurrentDelay() {
+  return delay;
 }
 
 module.exports = {
@@ -174,6 +150,7 @@ module.exports = {
   awaitResource,
   isReconnecting,
   isConnected,
+  getCurrentDelay,
   reconnecting,
   clientSocket,
 };
