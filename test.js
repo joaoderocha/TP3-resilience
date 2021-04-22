@@ -1,10 +1,18 @@
 'use strict';
 
 const {connect} = require('./src/client');
-const server = require('./src/server');
+const { encode } = require('./src/utils');
 
 (async ()=>{
-  await server.start(8080);
+  const skt = await connect('teste',{port: 8080, host:'localhost'});
 
-  await connect(8080, 'localhost');
+  const obj = {
+    source: 'client',
+    messageType: 'aquire',
+    content: {
+      resourcePosition: 10
+    },
+  };
+
+  skt.write(encode(obj));
 })();

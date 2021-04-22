@@ -1,13 +1,9 @@
 'use strict';
 
-exports.SOURCE = {
-  CLIENT: 1,
-  SERVER: 2,
-};
-
-exports.messageWrapper = function messageWrapper(message, source) {
+exports.messageWrapper = function messageWrapper(messageType, source, content) {
   return {
     source,
-    content: message,
+    messageType,
+    content,
   };
 };

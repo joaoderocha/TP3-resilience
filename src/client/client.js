@@ -27,6 +27,7 @@ async function connect(name, { port, host }) {
   clientSocket.on('close', onClose);
 
   await createConnection({ port, host });
+
   Object.assign(clientSocket, { clientName });
 
   return clientSocket;
