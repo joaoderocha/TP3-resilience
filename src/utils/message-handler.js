@@ -60,13 +60,17 @@ function releaseHandler(content) {
 
   addLog(`release do recurso ${recurso}`);
 
-  debug(`release ${util.inspect(idRecurso)}`);
+  debug(`release ${idRecurso}`);
 
   const idClient = resource.removeResourceQueue(idRecurso);
 
+  console.log(idClient);
+
+  console.log('proximo da fila', idClient);
+  resource.print();
+
   addLog(`proximo da fila ${idClient}`);
 
-  resource.print();
   resource.updateResource(idRecurso, recurso);
 
   if (!idClient) {
@@ -95,7 +99,7 @@ function infoClientHandler(content, socket) {
   debug('infoClientHandler');
   const { socketName } = content;
 
-  debug(`nome do socket ${socketName} e socket ${util.inspect(socket)}`);
+  debug(`nome do socket ${socketName}`);
 
   listaDeSocketsDeClientes.set(socketName, socket);
 

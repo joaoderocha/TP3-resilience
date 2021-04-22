@@ -12,9 +12,9 @@ const host = process.argv[3];
 const port = process.argv[4];
 
 async function main() {
-  console.log('conectado');
-
   await connect(clientName,{port,host});
+
+  console.log('conectado');
 
   let shouldRun = true;
 
@@ -38,47 +38,52 @@ async function main() {
       await sendMessage(mesage);
     } catch (error) {
       console.log(error);
+        console.log(error);
 
-      console.log('deu erro, reconectando', isReconnecting(), isConnected());
+        console.log('deu erro, reconectando', isReconnecting(), isConnected());
 
-      while (isReconnecting() && !isConnected()) {
-        const dlay = getCurrentDelay();
+        while (isReconnecting() && !isConnected()) {
+          const dlay = getCurrentDelay();
 
-        console.log('reconectando', dlay);
-        await sleep(dlay);
-      }
+          console.log('reconectando', dlay);
+          await sleep(dlay);
+        }
 
-      if (!isConnected()) {
-        shouldRun = false;
-      }
+        if (!isConnected()) {
+          shouldRun = false;
+        }
     }
   }
 }
 
 async function adquireRecurso(aquireMessage) {
-  let run = false;
-  let recurso = {};
+  try {
+    let run = false;
+    let recurso = {};
 
-  console.log('buscando recurso');
+    console.log('buscando recurso');
 
-  do {
-    const { content } = await sendMessage(aquireMessage);
+    do {
+      const { content } = await sendMessage(aquireMessage);
 
-    debug(`recurso ${content.resource} disponivel ${content.available}`);
-    recurso = content.resource;
+      debug(`recurso ${content.resource} disponivel ${content.available}`);
+      recurso = content.resource;
 
-    if (!content.available) {
-      debug('content not available, awaiting resource');
-      const {
-        content: { available, resource },
-      } = await awaitResource();
+      if (!content.available) {
+        debug('content not available, awaiting resource');
+        const {
+          content: { available, resource },
+        } = await awaitResource();
 
-      run = !available;
-      recurso = resource;
-    }
-  } while (run);
+        run = !available;
+        recurso = resource;
+      }
+    } while (run);
 
-  return recurso;
+    return recurso;
+  } catch (error) {
+    console.log('erro na espera de recurso', error);
+  }
 }
 
 function randomResource(MIN = 0, MAX = resourcesLength) {

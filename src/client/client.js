@@ -48,7 +48,7 @@ function informServer() {
 
 function sendMessage(message) {
   return new Promise((resolve, reject) => {
-    setTimeout(reject, delay, new Error('Could not connect to server'));
+    setTimeout(reject, 10000, new Error({ message: 'ECONNREFUSED: Could not connect to server' }));
     clientSocket.once('data', (data) => {
       resolve(decode(data));
     });
@@ -63,11 +63,10 @@ function sendMessage(message) {
 
 function awaitResource() {
   return new Promise((resolve, reject) => {
+    setTimeout(reject, 10000, { available: false });
     clientSocket.once('data', (data) => {
       resolve(decode(data));
     });
-
-    setTimeout(reject, delay, { available: false });
   });
 }
 
