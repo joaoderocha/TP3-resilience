@@ -2,18 +2,14 @@
 
 const debug = require('debug')('server:socket:onConnection');
 
-const { SOURCE, decode, encode, RESPONSES, messageBuilder, messageHandler } = require('../../utils');
+const { SOURCE, decode } = require('../../utils');
+
+const { clientMessageHandler } = require('./client-mesage-handler');
 
 exports.onConnection = function onConnection(socket) {
-  // listaDeSocketsDeClientes.push(socket);
-  // listaDeSocketsDeBrokers.push(socket);
-  debug(`client ${socket}`);
   socket.on('data', (data) => {
     try {
       const { source, messageType, content } = decode(data);
-
-      console.log(source, SOURCE.CLIENT);
-      console.log(source === SOURCE.CLIENT);
 
       switch (source) {
         case SOURCE.CLIENT:
@@ -31,28 +27,6 @@ exports.onConnection = function onConnection(socket) {
     }
   });
 };
-
-function clientMessageHandler(messageType, content, socket) {
-  debug(`messageType: ${messageType} content: ${content}`);
-
-  const result = messageHandler[messageType](content);
-
-  debug(`result: ${result}`);
-
-  const response = messageBuilder[RESPONSES[messageType]]({ ...result });
-
-  debug(`response: ${response}`);
-
-  const responseBuffer = encode(response);
-
-  debug(`Buffer ${responseBuffer.toString()}`);
-
-  sendResponse(socket, responseBuffer);
-}
-
-function sendResponse(socket, buffer) {
-  socket.write(buffer);
-}
 
 // recurso = [
 //   {

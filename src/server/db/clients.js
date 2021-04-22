@@ -1,6 +1,6 @@
 'use strict';
 
-const listaDeSocketsDeClientes = [];
+const listaDeSocketsDeClientes = new Map();
 
 module.exports = {
   listaDeSocketsDeClientes,

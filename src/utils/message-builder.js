@@ -12,25 +12,28 @@ const MESSAGETYPE = {
   RELEASE: 'release',
   AQUIRERESPONSE: 'aquireResponse',
   ACK: 'ack',
+  INFOCLIENT: 'info',
 };
 
 const RESPONSES = {
   [MESSAGETYPE.AQUIRE]: MESSAGETYPE.AQUIRERESPONSE,
   [MESSAGETYPE.RELEASE]: MESSAGETYPE.ACK,
+  [MESSAGETYPE.INFOCLIENT]: MESSAGETYPE.ACK,
 };
 
 const messageBuilder = {
-  [MESSAGETYPE.AQUIRE]: (resourcePosition) => {
+  [MESSAGETYPE.AQUIRE]: (resourcePosition, clientId) => {
     const content = {
       resourcePosition,
+      clientId,
     };
 
     return messageWrapper(MESSAGETYPE.AQUIRE, SOURCE.CLIENT, content);
   },
-  [MESSAGETYPE.AQUIRERESPONSE]: (resource, avaliable) => {
+  [MESSAGETYPE.AQUIRERESPONSE]: (resource, available) => {
     const content = {
-      avaliable,
-      resource,
+      available,
+      ...resource,
     };
 
     return messageWrapper(MESSAGETYPE.AQUIRERESPONSE, SOURCE.BROKER, content);
@@ -49,6 +52,13 @@ const messageBuilder = {
     };
 
     return messageWrapper(MESSAGETYPE.ACK, SOURCE.BROKER, content);
+  },
+  [MESSAGETYPE.INFOCLIENT]: (socketName, source) => {
+    const content = {
+      socketName,
+    };
+
+    return messageWrapper(MESSAGETYPE.INFOCLIENT, source, content);
   },
 };
 

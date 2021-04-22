@@ -1,12 +1,61 @@
 'use strict';
 
-const {connect} = require('./src/client');
+const debug = require('debug')('client:main');
+
+const {connect, sendMessage, awaitResource} = require('./src/client');
+const {resourcesLength} = require('./src/resource');
+
+const {messageBuilder, MESSAGETYPE: {AQUIRE, RELEASE}} = require('./src/utils');
+const sleep = require('./src/utils/sleep');
 
 const clientName = process.argv[2];
 const host = process.argv[3];
 const port = process.argv[4];
 
-connect(clientName,{port,host});
+(async ()=>{
+  await connect(clientName,{port,host});
+
+  let shouldRun = true;
+
+  while (shouldRun) {
+    const resourcePosition = randomResource();
+
+    const aquireMessage = messageBuilder[AQUIRE](resourcePosition, clientName);
+
+    try {
+      let run = false;
+      let recurso = {};
+
+      do {
+        const {content} = await sendMessage(aquireMessage);
+
+        debug(`recurso ${content.resource} disponivel ${content.available}`);
+        recurso = content.resource;
+
+        if (!content.available) {
+          debug('content not available, awaiting resource');
+          const {content: {available,resource}} = await awaitResource();
+
+          run = available;
+          recurso = resource;
+        }
+      } while (run);
+
+      await sleep(1000);
+
+      const mesage = messageBuilder[RELEASE](resourcePosition, recurso);
+
+      await sendMessage(mesage);
+    } catch (error) {
+      debug(error);
+      shouldRun = false;
+    }
+  }
+})();
+
+function randomResource(MIN=0,MAX=resourcesLength) {
+  return Math.floor(Math.random() * (MAX - MIN ) + MIN);
+}
 
 //cliente
 // recurso = numero aleatorio de 0 a 10

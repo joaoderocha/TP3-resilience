@@ -8,6 +8,7 @@ function incluirBroker(port, host) {
 
 module.exports = {
   optionalServers,
+
   incluirBroker,
 };
 
