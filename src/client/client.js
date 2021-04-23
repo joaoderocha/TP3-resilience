@@ -111,11 +111,8 @@ function onClose() {
 
     let newBroker = null;
 
-    console.log('RODEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEI', optionalServers.length);
     if (optionalServers.length > 0) {
       newBroker = optionalServers.shift();
-      console.log('ENTREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
-      console.log(newBroker);
     }
 
     debug(`${optionalServers.length}`);

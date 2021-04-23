@@ -54,7 +54,7 @@ function informMainBroker(brokerName, mainPort, mainHost) {
     port: mainPort,
     host: mainHost,
     source: SOURCE.BROKER,
-    reconnect: false,
+    reconnect: true,
     selfServerHost: serverAddress,
     selfServerPort: serverPort,
   });
