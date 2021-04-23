@@ -113,23 +113,25 @@ function onClose() {
 
     let newBroker = null;
 
-    // Gustavo
-    console.log('>>>>>>>>>', optionalServers);
-    // Gustavo
-
     if (optionalServers.length > 0) {
       newBroker = optionalServers.shift();
     }
 
-    debug(`${optionalServers.length}`);
+    // Gustavo
+    console.log('>>>>>>>>>', newBroker);
+    // Gustavo
 
-    if (newBroker) {
-      sktPort = newBroker.port;
-      sktHost = newBroker.host;
-      debug(`New broker found at ${sktHost} and ${sktPort}`);
+    if (!(newBroker.host === sktHost && newBroker.port === sktPort)) {
+      debug(`${optionalServers.length}`);
+
+      if (newBroker) {
+        sktPort = newBroker.port;
+        sktHost = newBroker.host;
+        debug(`New broker found at ${sktHost} and ${sktPort}`);
+      }
+
+      setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
     }
-
-    setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
   }
 }
 
