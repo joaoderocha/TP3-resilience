@@ -117,18 +117,12 @@ function onClose() {
       newBroker = optionalServers.shift();
     }
 
-    // Gustavo
-    console.log('>>>>>>>>>', newBroker);
-    // Gustavo
-
     debug(`${optionalServers.length}`);
 
     if (newBroker) {
-      if (!(newBroker.host === sktHost && newBroker.port === sktPort)) {
-        sktPort = newBroker.port;
-        sktHost = newBroker.host;
-        debug(`New broker found at ${sktHost} and ${sktPort}`);
-      }
+      sktPort = newBroker.port;
+      sktHost = newBroker.host;
+      debug(`New broker found at ${sktHost} and ${sktPort}`);
     }
 
     setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
