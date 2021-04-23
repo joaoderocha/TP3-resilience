@@ -12,13 +12,20 @@ const MESSAGETYPE = {
   RELEASE: 'release',
   AQUIRERESPONSE: 'aquireResponse',
   ACK: 'ack',
-  INFOCLIENT: 'info',
+  INFOCLIENT: 'infoclient',
+  INFOBROKER: 'infobroker',
+  UPDATEBROKER: 'updatebroker',
+  UPDATERESOURCE: 'updateresource',
 };
 
 const RESPONSES = {
   [MESSAGETYPE.AQUIRE]: MESSAGETYPE.AQUIRERESPONSE,
   [MESSAGETYPE.RELEASE]: MESSAGETYPE.ACK,
-  [MESSAGETYPE.INFOCLIENT]: MESSAGETYPE.ACK,
+  [MESSAGETYPE.INFOCLIENT]: MESSAGETYPE.UPDATEBROKER,
+  [MESSAGETYPE.INFOBROKER]: MESSAGETYPE.ACK,
+  [MESSAGETYPE.UPDATEBROKER]: MESSAGETYPE.ACK,
+  [MESSAGETYPE.AQUIRERESPONSE]: MESSAGETYPE.ACK,
+  [MESSAGETYPE.UPDATERESOURCE]: MESSAGETYPE.ACK,
 };
 
 const messageBuilder = {
@@ -59,6 +66,29 @@ const messageBuilder = {
     };
 
     return messageWrapper(MESSAGETYPE.INFOCLIENT, source, content);
+  },
+  [MESSAGETYPE.INFOBROKER]: (socketName, source, port, host) => {
+    const content = {
+      socketName,
+      port,
+      host,
+    };
+
+    return messageWrapper(MESSAGETYPE.INFOBROKER, source, content);
+  },
+  [MESSAGETYPE.UPDATEBROKER]: (arrayBroker) => {
+    const content = {
+      array: arrayBroker,
+    };
+
+    return messageWrapper(MESSAGETYPE.UPDATEBROKER, SOURCE.BROKER, content);
+  },
+  [MESSAGETYPE.UPDATERESOURCE]: (singleResource) => {
+    const content = {
+      ...singleResource,
+    };
+
+    return messageWrapper(MESSAGETYPE.UPDATERESOURCE, SOURCE.BROKER, content);
   },
 };
 

@@ -7,4 +7,6 @@ module.exports = {
   ...require('./message-decoder'),
   ...require('./message-builder'),
   ...require('./message-handler'),
+  ...require('./message-buffer'),
+  ...require('./properties'),
 };

@@ -6,12 +6,12 @@ const debug = require('debug')('server:message-handler');
 
 const resource = require('../resource');
 
-const { listaDeSocketsDeClientes, addLog, endLog } = require('../server/db');
+const { listaDeSocketsDeClientes, addLog, endLog, listaDeSocketsDeBrokers } = require('../server/db');
 
 const { MESSAGETYPE, messageBuilder } = require('./message-builder');
 const { encode } = require('./message-decoder');
 
-function aquireHandler(content) {
+function aquireHandler({ content }) {
   debug('aquireHandler');
 
   const { resourcePosition: idResource, clientId: idClient } = content;
@@ -48,12 +48,10 @@ function aquireHandler(content) {
 function ackHandler() {
   debug('ackHandler');
 
-  return {
-    statusCode: 'ok',
-  };
+  debug('ACK OK');
 }
 
-function releaseHandler(content) {
+function releaseHandler({ content }) {
   debug('release handler');
 
   const { resourcePosition: idRecurso, resource: recurso } = content;
@@ -64,14 +62,28 @@ function releaseHandler(content) {
 
   const idClient = resource.removeResourceQueue(idRecurso);
 
-  console.log(idClient);
-
-  console.log('proximo da fila', idClient);
   resource.print();
 
   addLog(`proximo da fila ${idClient}`);
 
   resource.updateResource(idRecurso, recurso);
+
+  if (listaDeSocketsDeBrokers.size > 0) {
+    const update = messageBuilder[MESSAGETYPE.UPDATERESOURCE]({
+      resourcePosition: idRecurso,
+      resource: recurso,
+    });
+
+    console.log(util.inspect(update));
+
+    for (const [nome, obj] of listaDeSocketsDeBrokers.entries()) {
+      debug(`atualizando broker ${nome}`);
+
+      const { socket } = obj;
+
+      socket.write(encode(update));
+    }
+  }
 
   if (!idClient) {
     resource.releaseResource(idRecurso);
@@ -95,7 +107,7 @@ function releaseHandler(content) {
   };
 }
 
-function infoClientHandler(content, socket) {
+function infoClientHandler({ content, socket }) {
   debug('infoClientHandler');
   const { socketName } = content;
 
@@ -103,16 +115,71 @@ function infoClientHandler(content, socket) {
 
   listaDeSocketsDeClientes.set(socketName, socket);
 
-  return true;
+  return listaDeSocketsDeBrokers.toList();
 }
 
-const messageHandler = {
+function infoBrokerHandler({ content, socket }) {
+  debug('infoBrokerHandler');
+  const { socketName, port, host } = content;
+
+  debug(`nome do socket ${socketName}`);
+
+  listaDeSocketsDeBrokers.set(socketName, { port, host, socket });
+
+  console.log(`lista de brokers ${util.inspect(listaDeSocketsDeBrokers.toList())}`);
+
+  const listaDeBrokers = listaDeSocketsDeBrokers.toList();
+
+  for (const [clientName, clientSocket] of listaDeSocketsDeClientes.entries()) {
+    debug(`atualizando cliente ${clientName}`);
+
+    const message = messageBuilder[MESSAGETYPE.UPDATEBROKER](listaDeBrokers);
+
+    clientSocket.write(encode(message));
+  }
+
+  return {
+    statusCode: 'ok',
+  };
+}
+
+function updateBrokerHandler({ content, optionalServers }) {
+  debug('updateBrokerHandler');
+  console.log(`${util.inspect(content)}`);
+
+  const { array } = content;
+
+  for (const [, value] of Object.entries(array)) {
+    optionalServers.push(value);
+    console.log(value);
+  }
+}
+
+function aquireResponseHandler({ content, socket }) {
+  debug('aquireResponseHandler');
+
+  socket.emit('dataReady', encode(content));
+}
+
+function updateResourceHandler({ content }) {
+  debug('updateResourceHandler');
+
+  const { resourcePosition: idRecurso, resource: recurso } = content;
+
+  resource.updateResource(idRecurso, recurso);
+}
+
+const handler = {
   [MESSAGETYPE.AQUIRE]: aquireHandler,
   [MESSAGETYPE.ACK]: ackHandler,
   [MESSAGETYPE.RELEASE]: releaseHandler,
   [MESSAGETYPE.INFOCLIENT]: infoClientHandler,
+  [MESSAGETYPE.INFOBROKER]: infoBrokerHandler,
+  [MESSAGETYPE.UPDATEBROKER]: updateBrokerHandler,
+  [MESSAGETYPE.AQUIRERESPONSE]: aquireResponseHandler,
+  [MESSAGETYPE.UPDATERESOURCE]: updateResourceHandler,
 };
 
 module.exports = {
-  messageHandler,
+  handler,
 };

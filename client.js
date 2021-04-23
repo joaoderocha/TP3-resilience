@@ -2,9 +2,9 @@
 
 const debug = require('debug')('main:client');
 
-const {connect, sendMessage, awaitResource, isReconnecting, isConnected, getCurrentDelay} = require('./src/client');
+const {connect, sendSyncMessage, awaitResource, isReconnecting, isConnected, getCurrentDelay, sendAsync} = require('./src/client');
 const { resourcesLength } = require('./src/resource');
-const { messageBuilder, MESSAGETYPE } = require('./src/utils');
+const { messageBuilder, MESSAGETYPE, SOURCE } = require('./src/utils');
 const sleep = require('./src/utils/sleep');
 
 const clientName = process.argv[2];
@@ -12,7 +12,7 @@ const host = process.argv[3];
 const port = process.argv[4];
 
 async function main() {
-  await connect(clientName,{port,host});
+  await connect(clientName,{port,host, source: SOURCE.CLIENT});
 
   console.log('conectado');
 
@@ -31,11 +31,11 @@ async function main() {
       // usa recurso
       await sleep(2000);
 
-      const mesage = messageBuilder[MESSAGETYPE.RELEASE](resourcePosition, recurso);
+      const message = messageBuilder[MESSAGETYPE.RELEASE](resourcePosition, recurso);
 
       console.log('com recurso');
 
-      await sendMessage(mesage);
+      sendAsync(message);
     } catch (error) {
       console.log(error);
         console.log(error);
@@ -64,16 +64,13 @@ async function adquireRecurso(aquireMessage) {
     console.log('buscando recurso');
 
     do {
-      const { content } = await sendMessage(aquireMessage);
+      const { resource, available} = await sendSyncMessage(aquireMessage);
 
-      debug(`recurso ${content.resource} disponivel ${content.available}`);
-      recurso = content.resource;
+      recurso = resource;
 
-      if (!content.available) {
+      if (!available) {
         debug('content not available, awaiting resource');
-        const {
-          content: { available, resource },
-        } = await awaitResource();
+        const {resource, available} = await awaitResource();
 
         run = !available;
         recurso = resource;

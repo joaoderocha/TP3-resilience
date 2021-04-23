@@ -1,9 +1,10 @@
 'use strict';
 
-const server = require('./src/server');
+const {start} = require('./src/server');
 
-const port = process.argv[2];
-const mainHost = process.argv[3];
-const mainPort = process.argv[4];
+const brokerName = process.argv[2];
+const port = process.argv[3];
+const mainHost = process.argv[4];
+const mainPort = process.argv[5];
 
-server.start(port, {mainHost, mainPort});
+start(port, {mainHost, mainPort, brokerName});

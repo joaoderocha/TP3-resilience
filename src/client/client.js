@@ -4,9 +4,9 @@ const net = require('net');
 
 const debug = require('debug')('client:connection');
 
-const { encode, decode, messageBuilder, MESSAGETYPE, SOURCE } = require('../utils');
+const { encode, decode, messageBuilder, MESSAGETYPE, SOURCE, handler, RESPONSES, MessageBuffer } = require('../utils');
 
-const { onError, optionalServers } = require('./actions');
+const { onError } = require('./actions');
 
 let clientSocket = null;
 
@@ -18,53 +18,75 @@ let clientName = '';
 let delay = 2 ** numberOfTries * 1000;
 let reconnecting = false;
 let connected = false;
+let shouldReconnect = true;
+let sourc = null;
+let mainServerAdress = '';
+let mainServerPort = -1;
+const optionalServers = [];
+const buffer = new MessageBuffer('|');
 
-async function connect(name, { port, host }) {
+async function connect(name, { port, host, source, reconnect = true, selfServerPort = -1, selfServerHost = '' }) {
   clientSocket = new net.Socket();
   clientName = name;
   sktPort = port;
   sktHost = host;
+  sourc = source;
+  shouldReconnect = reconnect;
+  mainServerAdress = selfServerHost;
+  mainServerPort = selfServerPort;
   Object.assign(clientSocket, { clientName });
   debug(`Connecting to ${host} at ${port}...`);
 
+  clientSocket.on('data', onData);
   clientSocket.on('connect', onConnection);
   clientSocket.on('error', onError);
   clientSocket.on('close', onClose);
-  clientSocket.on('drain', () => {
-    clientSocket.resume();
-  });
+  clientSocket.on('ready', onReady);
+
   await createConnection({ port, host });
 
-  await informServer();
+  console.log(clientSocket.eventNames());
 
   return clientSocket;
 }
 
-function informServer() {
-  const infoMessage = messageBuilder[MESSAGETYPE.INFOCLIENT](clientName, SOURCE.CLIENT);
-
-  return sendMessage(infoMessage);
+function onReady() {
+  informServer(sourc, mainServerPort, mainServerAdress);
 }
 
-function sendMessage(message) {
+function informServer(source, port = -1, host = '') {
+  let infoMessage = messageBuilder[MESSAGETYPE.INFOCLIENT](clientName, source);
+
+  if (SOURCE.BROKER === source) {
+    infoMessage = messageBuilder[MESSAGETYPE.INFOBROKER](clientName, source, port, host);
+  }
+
+  clientSocket.write(encode(infoMessage));
+}
+
+function sendAsync(message) {
+  clientSocket.write(encode(message));
+}
+
+function sendSyncMessage(message) {
   return new Promise((resolve, reject) => {
     setTimeout(reject, 10000, new Error({ message: 'ECONNREFUSED: Could not connect to server' }));
-    clientSocket.once('data', (data) => {
+    clientSocket.once('dataReady', (data) => {
+      debug('dataReady');
+      console.log(decode(data));
       resolve(decode(data));
     });
 
-    const buffered = clientSocket.write(encode(message));
-
-    if (!buffered) {
-      clientSocket.pause();
-    }
+    clientSocket.write(encode(message));
   });
 }
 
 function awaitResource() {
   return new Promise((resolve, reject) => {
     setTimeout(reject, 10000, { available: false });
-    clientSocket.once('data', (data) => {
+    clientSocket.once('dataReady', (data) => {
+      console.log(decode(data));
+
       resolve(decode(data));
     });
   });
@@ -75,32 +97,37 @@ function onClose() {
     clientSocket.destroy();
   }
 
-  connected = false;
-  reconnecting = true;
-  debug('Connection lost, trying to reconect...');
-  if (numberOfTries >= maxRetry) {
-    reconnecting = false;
-    throw new Error('Could not connect to server');
+  if (shouldReconnect) {
+    connected = false;
+    reconnecting = true;
+    debug('Connection lost, trying to reconect...');
+    if (numberOfTries >= maxRetry) {
+      reconnecting = false;
+      throw new Error('Could not connect to server');
+    }
+
+    delay = 2 ** numberOfTries * 1000;
+    numberOfTries += 1;
+
+    let newBroker = null;
+
+    console.log('RODEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEI', optionalServers.length);
+    if (optionalServers.length > 0) {
+      newBroker = optionalServers.shift();
+      console.log('ENTREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE');
+      console.log(newBroker);
+    }
+
+    debug(`${optionalServers.length}`);
+
+    if (newBroker) {
+      sktPort = newBroker.port;
+      sktHost = newBroker.host;
+      debug(`New broker found at ${sktHost} and ${sktPort}`);
+    }
+
+    setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
   }
-
-  delay = 2 ** numberOfTries * 1000;
-  numberOfTries += 1;
-
-  let newBroker = null;
-
-  if (optionalServers.length > 0) {
-    newBroker = optionalServers.pop();
-  }
-
-  debug(`${optionalServers.length}`);
-
-  if (newBroker) {
-    sktPort = newBroker.port;
-    sktHost = newBroker.host;
-    debug(`New broker found at ${sktHost} and ${sktPort}`);
-  }
-
-  setTimeout(connect, delay, { port: sktPort, host: sktHost }, clientName);
 }
 
 function onConnection() {
@@ -108,6 +135,34 @@ function onConnection() {
   delay = 2 ** numberOfTries * 1000;
   reconnecting = false;
   connected = true;
+}
+
+function onData(data) {
+  buffer.push(data);
+
+  while (!buffer.isFinished()) {
+    const { source, messageType, content } = buffer.handleData();
+
+    if (!validadeData(source, messageType, content)) {
+      console.log('dados invalidos');
+
+      return;
+    }
+
+    const result = handler[messageType]({ content, source, socket: clientSocket, optionalServers });
+
+    const builder = messageBuilder[RESPONSES[messageType]];
+
+    if (builder) {
+      const message = builder({ ...result });
+
+      clientSocket.write(encode(message));
+    }
+  }
+}
+
+function validadeData(source, messageType, content) {
+  return source && messageType && content;
 }
 
 function createConnection({ host, port }) {
@@ -134,7 +189,8 @@ function getCurrentDelay() {
 
 module.exports = {
   connect,
-  sendMessage,
+  sendSyncMessage,
+  sendAsync,
   awaitResource,
   isReconnecting,
   isConnected,
