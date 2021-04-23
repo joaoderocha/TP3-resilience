@@ -121,17 +121,16 @@ function onClose() {
     console.log('>>>>>>>>>', newBroker);
     // Gustavo
 
-    if (!(newBroker.host === sktHost && newBroker.port === sktPort)) {
-      debug(`${optionalServers.length}`);
+    debug(`${optionalServers.length}`);
 
-      if (newBroker) {
-        sktPort = newBroker.port;
-        sktHost = newBroker.host;
-        debug(`New broker found at ${sktHost} and ${sktPort}`);
-      }
-
-      setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
+    if (newBroker) {
+      if (newBroker.host === sktHost && newBroker.port === sktPort) {
+      sktPort = newBroker.port;
+      sktHost = newBroker.host;
+      debug(`New broker found at ${sktHost} and ${sktPort}`);
     }
+
+    setTimeout(connect, delay, clientName, { port: sktPort, host: sktHost });
   }
 }
 
