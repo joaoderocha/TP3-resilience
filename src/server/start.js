@@ -19,11 +19,12 @@ const mainBrokerAddress = '';
 const mainBrokerPort = -1;
 const buffer = new MessageBuffer('|');
 
-async function start(port, { mainHost, mainPort, brokerName }) {
+async function start(host, port, { mainHost, mainPort, brokerName }) {
   debug('Starting server...');
   server = net.createServer();
   name = brokerName;
   serverPort = port;
+  serverAddress = host;
 
   isPrimary = !(mainHost && mainPort);
 
@@ -38,10 +39,6 @@ async function start(port, { mainHost, mainPort, brokerName }) {
       resolve(server);
     });
   });
-
-  const { address } = server.address();
-
-  serverAddress = address;
 
   if (!isPrimary) {
     clientSocket = await informMainBroker(name, mainPort, mainHost);

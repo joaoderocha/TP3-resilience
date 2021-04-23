@@ -3,8 +3,9 @@
 const {start} = require('./src/server');
 
 const brokerName = process.argv[2];
-const port = process.argv[3];
-const mainHost = process.argv[4];
-const mainPort = process.argv[5];
+const host = process.argv[3];
+const port = process.argv[4];
+const mainHost = process.argv[5];
+const mainPort = process.argv[6];
 
-start(port, {mainHost, mainPort, brokerName});
+start(port, host, {mainHost, mainPort, brokerName});
