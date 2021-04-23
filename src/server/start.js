@@ -25,7 +25,6 @@ async function start(host, port, { mainHost, mainPort, brokerName }) {
   name = brokerName;
   serverAddress = host;
   serverPort = port;
-  console.log(serverAddress, serverPort);
 
   isPrimary = !(mainHost && mainPort);
 
