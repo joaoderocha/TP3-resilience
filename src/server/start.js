@@ -23,8 +23,9 @@ async function start(host, port, { mainHost, mainPort, brokerName }) {
   debug('Starting server...');
   server = net.createServer();
   name = brokerName;
-  serverPort = port;
   serverAddress = host;
+  serverPort = port;
+  console.log(serverAddress, serverPort);
 
   isPrimary = !(mainHost && mainPort);
 
