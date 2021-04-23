@@ -8,4 +8,4 @@ const port = process.argv[4];
 const mainHost = process.argv[5];
 const mainPort = process.argv[6];
 
-start(port, host, {mainHost, mainPort, brokerName});
+start(host, port, {mainHost, mainPort, brokerName});
