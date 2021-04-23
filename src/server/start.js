@@ -24,6 +24,7 @@ async function start(port, { mainHost, mainPort, brokerName }) {
   server = net.createServer();
   name = brokerName;
   serverPort = port;
+
   isPrimary = !(mainHost && mainPort);
 
   server.on('connection', onConnection);

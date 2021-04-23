@@ -4,15 +4,15 @@ const debug = require('debug')('server:resource');
 
 const resources = [
   { available: true, content: 'a', queue: [] },
-  // { available: true, content: 'b', queue: [] },
-  // { available: true, content: 'c', queue: [] },
-  // { available: true, content: 'd', queue: [] },
-  // { available: true, content: 'e', queue: [] },
-  // { available: true, content: 'f', queue: [] },
-  // { available: true, content: 'g', queue: [] },
-  // { available: true, content: 'h', queue: [] },
-  // { available: true, content: 'i', queue: [] },
-  // { available: true, content: 'j', queue: [] },
+  { available: true, content: 'b', queue: [] },
+  { available: true, content: 'c', queue: [] },
+  { available: true, content: 'd', queue: [] },
+  { available: true, content: 'e', queue: [] },
+  { available: true, content: 'f', queue: [] },
+  { available: true, content: 'g', queue: [] },
+  { available: true, content: 'h', queue: [] },
+  { available: true, content: 'i', queue: [] },
+  { available: true, content: 'j', queue: [] },
 ];
 
 const resourcesLength = resources.length;

@@ -45,7 +45,9 @@ async function connect(name, { port, host, source, reconnect = true, selfServerP
 
   await createConnection({ port, host });
 
-  console.log(clientSocket.eventNames());
+    // Gustavo
+    console.log('>>>>>>>>>', optionalServers);
+    // Gustavo
 
   return clientSocket;
 }
@@ -110,6 +112,10 @@ function onClose() {
     numberOfTries += 1;
 
     let newBroker = null;
+
+    // Gustavo
+    console.log('>>>>>>>>>', optionalServers);
+    // Gustavo
 
     if (optionalServers.length > 0) {
       newBroker = optionalServers.shift();

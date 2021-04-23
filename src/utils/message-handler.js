@@ -138,9 +138,7 @@ function infoBrokerHandler({ content, socket }) {
     clientSocket.write(encode(message));
   }
 
-  return {
-    statusCode: 'ok',
-  };
+  return listaDeSocketsDeBrokers.toList();
 }
 
 function updateBrokerHandler({ content, optionalServers }) {
